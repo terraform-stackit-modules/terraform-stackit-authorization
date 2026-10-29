@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.0.0 (2026-10-29)
+
+### Features
+
+* Initial STACKIT authorization module (custom roles and role assignments) ([2debc43](https://github.com/terraform-stackit-modules/terraform-stackit-authorization/commit/2debc436d24a8d47dafef1e80507d1700159ac60))
+
 ## [1.0.1](https://github.com/terraform-stackit-modules/terraform-repo-template/compare/v1.0.0...v1.0.1) (2026-09-09)
 
 ### Bug Fixes
