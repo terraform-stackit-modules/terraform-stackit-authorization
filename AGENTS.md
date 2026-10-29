@@ -23,6 +23,42 @@ It is part of the [terraform-stackit-modules](https://github.com/terraform-stack
     └── workflows/           # CI/CD pipelines
 ```
 
+### This module: authorization
+
+Composite module for STACKIT **authorization (IAM)**: custom roles and role assignments at the
+organization, folder, project and service-account levels.
+
+**Sub-modules**
+- `modules/organization` — `stackit_authorization_organization_custom_role` + `_role_assignment`.
+- `modules/folder` — `stackit_authorization_folder_custom_role` + `_role_assignment`.
+- `modules/project` — `stackit_authorization_project_custom_role` + `_role_assignment`.
+- `modules/service-account` — `stackit_authorization_service_account_role_assignment` (Act-As).
+
+**Key inputs** — NO `project_id` and NO `region` variables (unlike most modules): every map entry
+carries its own `resource_id`. Maps: `{organization,folder,project}_custom_roles`
+(`{resource_id, name, description, permissions}`), `{organization,folder,project,service_account}_role_assignments`
+(`{resource_id, role, subject}`).
+
+**Outputs** — `{scope}_custom_role_ids` (role_id) and `{scope}_role_assignment_ids` per level.
+
+**Gotchas**
+- The STACKIT **IAM authorization API is experimental** (provider docs) — expect upstream breaking changes.
+- **Role assignments REQUIRE the provider experiment** `experiments = ["iam"]` (provider code:
+  features.CheckExperimentEnabled — fails at plan time without it). Custom roles do NOT require it.
+  examples/basic declares `provider "stackit" { experiments = ["iam"] }`.
+- `role` names are RELATIVE (e.g. `reader`, `user`, `kms.admin` on project assignments); query available
+  roles via `stackit curl https://authorization.api.stackit.cloud/v2/{resourceType}/{resourceId}/roles`.
+- `subject` must be LOWERCASED (user/SA email, or client name).
+- Service-account level = **Act-As**: `resource_id` is the TARGET service account ID, `subject` is the
+  SA allowed to impersonate it (common role: `user`).
+- Custom role permission strings are short (e.g. `iam.subject.get`), NOT `stackit.*` prefixed.
+- CALLER permissions (Terratest/CI SA): role assignments need "IAM Member Admin" on the project
+  (iam.member.add); CUSTOM ROLES need the HIGH-PRIVILEGE `iam.role.add` (usually via project
+  Owner/Editor) — NOT covered by IAM Member Admin. Hence examples/basic = assignment only
+  (passes with Member Admin), examples/custom-roles = custom role (needs iam.role.add).
+- The basic example creates its own `stackit_service_account` (subject for the assignment) so it only
+  needs `STACKIT_PROJECT_ID` in CI.
+
 ## Coding conventions
 
 - Terraform version: `>= 1.3`
