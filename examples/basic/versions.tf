@@ -8,3 +8,9 @@ terraform {
     }
   }
 }
+
+# Role assignments are part of the experimental IAM feature: the provider must
+# enable it. Custom roles work without the flag, role assignments do not.
+provider "stackit" {
+  experiments = ["iam"]
+}
